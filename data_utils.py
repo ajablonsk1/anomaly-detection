@@ -21,6 +21,7 @@ def load_data(file_paths):
 
 
 def preprocess_data(data):
+    # TODO: check mathematical solutions to exclude columns; e.g. correlation between Label and Destination IP / tests with models - add column, delete column and test
     data = data.drop(
         [
             "Unnamed: 0",
@@ -35,6 +36,7 @@ def preprocess_data(data):
         errors="ignore",
     )
 
+    # TODO: object -> numeric
     for col in data.columns:
         if col != "Label" and data[col].dtype == "object":
             data = data.drop(col, axis=1)

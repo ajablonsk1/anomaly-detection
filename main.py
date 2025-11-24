@@ -1,5 +1,9 @@
 import pandas as pd
 import warnings
+import argparse
+import json
+import os
+import sys
 from sklearn.model_selection import train_test_split
 
 from data_utils import (
@@ -9,7 +13,7 @@ from data_utils import (
     prepare_multiclass_labels,
     scale_features,
 )
-from classifiers import BinaryClassifier, MulticlassClassifier
+from classifiers import Classifier
 from plots import (
     plot_confusion_matrices,
     plot_feature_importance,
@@ -33,14 +37,15 @@ def print_results(model_name, classification_type, results):
     print(results["report"])
 
 
-def run_binary_classification(X_train, X_test, y_train, y_test, model_types):
+def run_binary_classification(X_train, X_test, y_train, y_test, model_types, model_params):
     print("\n[BINARY CLASSIFICATION]")
     results = []
 
     for model_type in model_types:
-        classifier = BinaryClassifier(model_type=model_type)
+        params = model_params.get(model_type, {})
+        classifier = Classifier(model_type=model_type, num_classes=2, model_params=params)
         classifier.train(X_train, y_train)
-        eval_results = classifier.evaluate(X_test, y_test)
+        eval_results = classifier.evaluate(X_test, y_test, target_names=["BENIGN", "ATTACK"])
         print_results(classifier.name, "Binary Classification", eval_results)
 
         results.append(
@@ -58,14 +63,15 @@ def run_binary_classification(X_train, X_test, y_train, y_test, model_types):
 
 
 def run_multiclass_classification(
-    X_train, X_test, y_train, y_test, class_names, model_types
+    X_train, X_test, y_train, y_test, class_names, model_types, model_params
 ):
     print("\n[MULTICLASS CLASSIFICATION]")
     results = []
     models_importance = []
 
     for model_type in model_types:
-        classifier = MulticlassClassifier(model_type=model_type)
+        params = model_params.get(model_type, {})
+        classifier = Classifier(model_type=model_type, num_classes=len(class_names), model_params=params)
         classifier.train(X_train, y_train)
         eval_results = classifier.evaluate(X_test, y_test, target_names=class_names)
         print_results(classifier.name, "Multiclass Classification", eval_results)
@@ -109,8 +115,29 @@ def save_results(binary_results, multiclass_results, output_path):
     print(f"\n✓ Results saved to: {output_path.split('/')[-1]}")
 
 
+def check_prerequisites(file_paths):
+    print("\n[0/7] Checking prerequisites...")
+    output_dir = "outputs"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        print(f"✓ Created directory: {output_dir}")
+
+    for file_path in file_paths:
+        if not os.path.exists(file_path):
+            print(f"✗ Error: Data file not found at {file_path}", file=sys.stderr)
+            sys.exit(1)
+    print("✓ All files and directories are in place.")
+
+
 def main():
+    parser = argparse.ArgumentParser(description="DDoS Attack Classification")
+    parser.add_argument('--smaller-dataset', '-s', action='store_true', help='Use smaller dataset for quick run')
+    args = parser.parse_args()
+
     print_header("DDOS ATTACK CLASSIFICATION")
+
+    with open('config.json', 'r') as f:
+        model_params = json.load(f)
 
     file_paths = [
         "data/Syn.csv",
@@ -122,9 +149,13 @@ def main():
         "data/Portmap.csv",
     ]
 
-    model_types = ["rf", "xgb", "nb"]
+    if args.smaller_dataset:
+        print("\nRunning with smaller dataset...")
+        file_paths = [f.replace('.csv', '_small.csv') for f in file_paths]
 
-    # TODO: add prerequisities (check if data folder and files exist, check if output folder exist)
+    check_prerequisites(file_paths)
+
+    model_types = ["rf", "xgb", "nb"]
 
     print("\n[1/7] Loading data...")
     data = load_data(file_paths)
@@ -147,7 +178,7 @@ def main():
     X_train_bin_scaled, X_test_bin_scaled = scale_features(X_train_bin, X_test_bin)
 
     binary_results = run_binary_classification(
-        X_train_bin_scaled, X_test_bin_scaled, y_train_bin, y_test_bin, model_types
+        X_train_bin_scaled, X_test_bin_scaled, y_train_bin, y_test_bin, model_types, model_params
     )
 
     print("\n[4/7] Preparing multiclass classification...")
@@ -166,6 +197,7 @@ def main():
         y_test_multi,
         label_encoder.classes_,
         model_types,
+        model_params,
     )
 
     print("\n[5/7] Generating visualizations...")
