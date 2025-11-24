@@ -155,7 +155,7 @@ def main():
 
     check_prerequisites(file_paths)
 
-    model_types = ["rf", "xgb", "nb"]
+    model_types = ["rf", "xgb", "svm"]
 
     print("\n[1/7] Loading data...")
     data = load_data(file_paths)

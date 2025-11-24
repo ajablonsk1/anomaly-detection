@@ -1,5 +1,5 @@
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, f1_score, classification_report
 import xgboost as xgb
 
@@ -18,9 +18,9 @@ class Classifier:
             params['eval_metric'] = eval_metric
             self.model = xgb.XGBClassifier(**params)
             self.name = "XGBoost"
-        elif model_type == "nb":
-            self.model = GaussianNB(**model_params)
-            self.name = "Naive Bayes"
+        elif model_type == "svm":
+            self.model = SVC(**model_params)
+            self.name = "Support Vector Machine"
 
     def train(self, X_train, y_train):
         self.model.fit(X_train, y_train)

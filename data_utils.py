@@ -36,10 +36,13 @@ def preprocess_data(data):
         errors="ignore",
     )
 
-    # TODO: object -> numeric
-    for col in data.columns:
-        if col != "Label" and data[col].dtype == "object":
-            data = data.drop(col, axis=1)
+    # Convert categorical columns to numeric using one-hot encoding
+    object_cols = [col for col in data.columns if data[col].dtype == 'object' and col != 'Label']
+    if object_cols:
+        print(f"\nApplying one-hot encoding to categorical features: {', '.join(object_cols)}")
+        data = pd.get_dummies(data, columns=object_cols, dummy_na=False)
+    else:
+        print("\nNo categorical features to encode.")
 
     data = data.replace([np.inf, -np.inf], np.nan)
     data = data.dropna()

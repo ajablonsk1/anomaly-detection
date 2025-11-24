@@ -17,5 +17,10 @@
     "gamma": 0,
     "random_state": 42
   },
-  "nb": {}
+  "svm": {
+    "C": 1.0,
+    "kernel": "rbf",
+    "gamma": "scale",
+    "random_state": 42
+  }
 }
