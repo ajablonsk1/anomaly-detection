@@ -32,7 +32,17 @@ class Classifier:
         y_pred = self.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
         f1 = f1_score(y_test, y_pred, average="weighted")
-        report = classification_report(y_test, y_pred, target_names=target_names)
+
+        # Handle case where not all classes are present in predictions/test
+        unique_labels = sorted(set(y_test) | set(y_pred))
+        actual_target_names = [target_names[i] for i in unique_labels] if len(unique_labels) < len(
+            target_names) else target_names
+
+        report = classification_report(
+            y_test, y_pred,
+            labels=unique_labels,
+            target_names=actual_target_names
+        )
 
         return {
             "accuracy": accuracy,

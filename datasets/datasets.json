@@ -1,0 +1,68 @@
+{
+  "ddos": {
+    "name": "DDoS Attack Detection",
+    "files": [
+      "data/Syn.csv",
+      "data/NetBIOS.csv",
+      "data/MSSQL.csv",
+      "data/LDAP.csv",
+      "data/UDPLag.csv",
+      "data/UDP.csv",
+      "data/Portmap.csv"
+    ],
+    "files_smaller": [
+      "data/Syn_smaller.csv",
+      "data/NetBIOS_smaller.csv",
+      "data/MSSQL_smaller.csv",
+      "data/LDAP_smaller.csv",
+      "data/UDPLag_smaller.csv",
+      "data/UDP_smaller.csv",
+      "data/Portmap_smaller.csv"
+    ],
+    "label_column": "Label",
+    "binary_positive_class": "BENIGN",
+    "binary_labels": ["BENIGN", "ATTACK"],
+    "column_mapping": {},
+    "drop_columns": ["Unnamed: 0", "Flow ID", "Source IP", "Destination IP", "Timestamp", "Source Port", "Destination Port"]
+  },
+  "darknet_tor": {
+    "name": "Darknet Traffic Detection",
+    "files": [
+      "data/Darknet.csv"
+    ],
+    "files_smaller": [
+      "data/Darknet_smaller.csv"
+    ],
+    "label_column": "Label",
+    "binary_positive_class": null,
+    "binary_labels": null,
+    "column_mapping": {
+      "Src IP": "Source IP",
+      "Dst IP": "Destination IP",
+      "Src Port": "Source Port",
+      "Dst Port": "Destination Port"
+    },
+    "drop_columns": ["Unnamed: 0", "Flow ID", "Source IP", "Destination IP", "Timestamp", "Source Port", "Destination Port", "Src IP", "Dst IP", "Src Port", "Dst Port", "Label.1"],
+    "multiclass_only": true
+  },
+  "darknet_app": {
+    "name": "Darknet Application Classification",
+    "files": [
+      "data/Darknet.csv"
+    ],
+    "files_smaller": [
+      "data/Darknet_smaller.csv"
+    ],
+    "label_column": "Label.1",
+    "binary_positive_class": null,
+    "binary_labels": null,
+    "column_mapping": {
+      "Src IP": "Source IP",
+      "Dst IP": "Destination IP",
+      "Src Port": "Source Port",
+      "Dst Port": "Destination Port"
+    },
+    "drop_columns": ["Unnamed: 0", "Flow ID", "Source IP", "Destination IP", "Timestamp", "Source Port", "Destination Port", "Src IP", "Dst IP", "Src Port", "Dst Port", "Label"],
+    "multiclass_only": true
+  }
+}

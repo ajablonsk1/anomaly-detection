@@ -3,40 +3,62 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.feature_selection import VarianceThreshold
 
-def load_data(file_paths):
+
+def load_data(file_paths, dataset_config):
+    """
+    Universal data loader that works with any dataset configuration.
+
+    Args:
+        file_paths: List of paths to CSV files
+        dataset_config: Dataset configuration from config.json
+    """
     dfs = []
+    label_column = dataset_config.get("label_column", "Label")
+    column_mapping = dataset_config.get("column_mapping", {})
+
     for fp in file_paths:
         df = pd.read_csv(fp, on_bad_lines="skip", low_memory=False)
         df.columns = df.columns.str.strip()
+
+        # Apply column mapping if specified
+        if column_mapping:
+            df = df.rename(columns=column_mapping)
+
         dfs.append(df)
-        print(
-            f"  - {fp.split('/')[-1]}: {len(df)} records, label: {df['Label'].unique()[0]}"
-        )
+
+        # Show label info
+        if label_column in df.columns:
+            unique_labels = df[label_column].unique()
+            label_preview = unique_labels[0] if len(unique_labels) == 1 else f"{len(unique_labels)} classes"
+            print(f"  - {fp.split('/')[-1]}: {len(df)} records, label: {label_preview}")
+        else:
+            print(f"  - {fp.split('/')[-1]}: {len(df)} records")
 
     data = pd.concat(dfs, ignore_index=True)
     print(f"\nTotal records loaded: {len(data)}")
-    print(f"Attack classes: {data['Label'].unique()}")
+    print(f"Classes in '{label_column}': {data[label_column].unique()}")
     return data
 
 
-def preprocess_data(data):
-    # TODO: check mathematical solutions to exclude columns; e.g. correlation between Label and Destination IP / tests with models - add column, delete column and test
-    data = data.drop(
-        [
-            "Unnamed: 0",
-            "Flow ID",
-            "Source IP",
-            "Destination IP",
-            "Timestamp",
-            "Source Port",
-            "Destination Port",
-        ],
-        axis=1,
-        errors="ignore",
-    )
+def preprocess_data(data, dataset_config, preprocessing_config):
+    """
+    Universal preprocessor that works with any dataset configuration.
+
+    Args:
+        data: DataFrame to preprocess
+        dataset_config: Dataset configuration from config.json
+        preprocessing_config: Preprocessing parameters from config.json
+    """
+    label_column = dataset_config.get("label_column", "Label")
+    drop_columns = dataset_config.get("drop_columns", [])
+    variance_threshold = preprocessing_config.get("variance_threshold", 0.0)
+    correlation_threshold = preprocessing_config.get("correlation_threshold", 0.95)
+
+    # Drop specified columns
+    data = data.drop(drop_columns, axis=1, errors="ignore")
 
     # Convert categorical columns to numeric using one-hot encoding
-    object_cols = [col for col in data.columns if data[col].dtype == 'object' and col != 'Label']
+    object_cols = [col for col in data.columns if data[col].dtype == 'object' and col != label_column]
     if object_cols:
         print(f"\nApplying one-hot encoding to categorical features: {', '.join(object_cols)}")
         data = pd.get_dummies(data, columns=object_cols, dummy_na=False)
@@ -46,14 +68,13 @@ def preprocess_data(data):
     data = data.replace([np.inf, -np.inf], np.nan)
     data = data.dropna()
 
-    y = data["Label"]
-    X = data.drop("Label", axis=1)
+    y = data[label_column]
+    X = data.drop(label_column, axis=1)
 
     print("\n  >> Feature selection...")
 
-    X = drop_low_variance_features(X, threshold=0.0)
-
-    X = drop_high_correlation_features(X, threshold=0.95)
+    X = drop_low_variance_features(X, threshold=variance_threshold)
+    X = drop_high_correlation_features(X, threshold=correlation_threshold)
 
     data = pd.concat([X, y], axis=1)
 
@@ -62,14 +83,30 @@ def preprocess_data(data):
     return data
 
 
-def prepare_binary_labels(y):
-    return y.apply(lambda x: 0 if x == "BENIGN" else 1)
+def prepare_binary_labels(y, positive_class="BENIGN"):
+    """
+    Prepare binary labels based on the specified positive class.
+
+    Args:
+        y: Series with labels
+        positive_class: The class to be labeled as 0 (negative/benign)
+    """
+    return y.apply(lambda x: 0 if x == positive_class else 1)
 
 
 def prepare_multiclass_labels(y):
+    """Encode multiclass labels."""
     le = LabelEncoder()
     y_encoded = le.fit_transform(y)
     return y_encoded, le
+
+
+def get_binary_target_names(dataset_config):
+    """Get target names for binary classification from config."""
+    binary_labels = dataset_config.get("binary_labels")
+    if binary_labels:
+        return binary_labels
+    return ["NEGATIVE", "POSITIVE"]
 
 
 def scale_features(X_train, X_test):
@@ -77,7 +114,6 @@ def scale_features(X_train, X_test):
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
     return X_train_scaled, X_test_scaled
-
 
 
 def drop_low_variance_features(data, threshold=0.0):
@@ -91,7 +127,6 @@ def drop_low_variance_features(data, threshold=0.0):
         print(f"Removed low-variance features: {len(dropped_columns)} columns")
 
     return data[kept_columns]
-
 
 
 def drop_high_correlation_features(data, threshold=0.9):
