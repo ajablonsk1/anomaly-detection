@@ -97,6 +97,199 @@ python main.py -d ddos -q
 | `ddos` | binary + multiclass | DDoS attack detection (BENIGN vs ATTACK + attack types) |
 | `darknet_tor` | multiclass only | Darknet traffic detection (Tor, Non-Tor, VPN, Non-VPN) |
 | `darknet_app` | multiclass only | Application classification (AUDIO, VIDEO, CHAT, etc.) |
+| `syscallsbinders` | multiclass only | Syscalls binders classification (malware analysis) |
+
+## Results
+
+### Summary
+
+All models were tested with 5 configurations: Baseline, Fast Test, High Estimators, Linear SVM Focus, and Regularized. Below are the best results achieved for each dataset.
+
+#### Best Results Overview
+
+| Dataset | Best Model | Config | Type | Accuracy | F1-Score |
+|---------|-----------|--------|------|----------|----------|
+| DDoS (Binary) | XGBoost | High Estimators | Binary | **99.99%** | 0.9999 |
+| DDoS (Multiclass) | XGBoost | Baseline | Multiclass | **92.70%** | 0.9295 |
+| Darknet Tor | XGBoost | High Estimators | Multiclass | **98.50%** | 0.9850 |
+| Darknet App | XGBoost | Baseline | Multiclass | **98.49%** | 0.9845 |
+| Syscallsbinders | XGBoost | Baseline | Multiclass | **94.57%** | 0.9456 |
+
+---
+
+### DDoS Attack Detection
+
+Binary classification (BENIGN vs ATTACK) and multiclass classification (attack type detection).
+
+#### Binary Classification Results
+
+| Config | Random Forest | XGBoost | SVM |
+|--------|---------------|---------|-----|
+| Baseline | 99.98% | 99.98% | 99.87% |
+| Fast Test | 99.97% | 99.95% | 99.87% |
+| High Estimators | 99.98% | **99.99%** | 99.87% |
+| Regularized | 99.96% | 99.97% | 99.83% |
+| Linear SVM | 99.98% | 99.98% | 99.88% |
+
+#### Multiclass Classification Results
+
+| Config | Random Forest | XGBoost | SVM |
+|--------|---------------|---------|-----|
+| Baseline | 89.40% | **92.70%** | 86.99% |
+| Fast Test | 88.56% | 92.58% | 86.92% |
+| High Estimators | 89.38% | 92.67% | 86.99% |
+| Regularized | 89.27% | 92.68% | 86.77% |
+| Linear SVM | 89.40% | 92.70% | 87.95% |
+
+#### Visualizations
+
+<details>
+<summary>📊 Click to expand DDoS visualizations</summary>
+
+**Class Distribution:**
+
+![Class Distribution](outputs/ddos/class_distribution.png)
+
+**Model Comparison:**
+
+![Model Comparison](outputs/ddos/model_comparison.png)
+
+**Confusion Matrices (Baseline):**
+
+![Confusion Matrices](outputs/ddos/confusion_matrices_baseline.png)
+
+**Feature Importance (Baseline):**
+
+![Feature Importance](outputs/ddos/feature_importance_baseline.png)
+
+</details>
+
+---
+
+### Darknet Traffic Detection (Tor)
+
+Multiclass classification: Tor, Non-Tor, VPN, Non-VPN traffic.
+
+#### Results by Configuration
+
+| Config | Random Forest | XGBoost | SVM |
+|--------|---------------|---------|-----|
+| Baseline | 98.37% | 98.49% | 94.89% |
+| Fast Test | 97.67% | 97.40% | 94.89% |
+| High Estimators | 98.26% | **98.50%** | 94.89% |
+| Regularized | 98.25% | 98.31% | 94.04% |
+| Linear SVM | 98.37% | 98.49% | 91.17% |
+
+#### Visualizations
+
+<details>
+<summary>📊 Click to expand Darknet Tor visualizations</summary>
+
+**Class Distribution:**
+
+![Class Distribution](outputs/darknet_tor/class_distribution.png)
+
+**Model Comparison:**
+
+![Model Comparison](outputs/darknet_tor/model_comparison.png)
+
+**Confusion Matrices (Baseline):**
+
+![Confusion Matrices](outputs/darknet_tor/confusion_matrices_baseline.png)
+
+**Feature Importance (Baseline):**
+
+![Feature Importance](outputs/darknet_tor/feature_importance_baseline.png)
+
+</details>
+
+---
+
+### Darknet Application Classification
+
+Multiclass classification: AUDIO, VIDEO, CHAT, BROWSING, etc.
+
+#### Results by Configuration
+
+| Config | Random Forest | XGBoost | SVM |
+|--------|---------------|---------|-----|
+| Baseline | 98.43% | **98.49%** | 95.96% |
+| Fast Test | 97.43% | 98.15% | 95.91% |
+| High Estimators | 98.40% | 98.47% | 95.96% |
+| Regularized | 97.96% | 98.25% | 95.77% |
+| Linear SVM | 98.43% | 98.49% | 94.46% |
+
+#### Visualizations
+
+<details>
+<summary>📊 Click to expand Darknet App visualizations</summary>
+
+**Class Distribution:**
+
+![Class Distribution](outputs/darknet_app/class_distribution.png)
+
+**Model Comparison:**
+
+![Model Comparison](outputs/darknet_app/model_comparison.png)
+
+**Confusion Matrices (Baseline):**
+
+![Confusion Matrices](outputs/darknet_app/confusion_matrices_baseline.png)
+
+**Feature Importance (Baseline):**
+
+![Feature Importance](outputs/darknet_app/feature_importance_baseline.png)
+
+</details>
+
+---
+
+### Syscalls Binders Classification
+
+Multiclass classification of syscalls/binders patterns for malware analysis.
+
+#### Results by Configuration
+
+| Config | Random Forest | XGBoost | SVM |
+|--------|---------------|---------|-----|
+| Baseline | 94.51% | **94.57%** | 78.16% |
+| Fast Test | 91.29% | 92.70% | 77.84% |
+| High Estimators | 94.08% | 94.57% | 78.16% |
+| Regularized | 93.05% | 94.08% | 76.32% |
+| Linear SVM | 94.51% | 94.57% | 86.52% |
+
+#### Visualizations
+
+<details>
+<summary>📊 Click to expand Syscallsbinders visualizations</summary>
+
+**Class Distribution:**
+
+![Class Distribution](outputs/syscallsbinders/class_distribution.png)
+
+**Model Comparison:**
+
+![Model Comparison](outputs/syscallsbinders/model_comparison.png)
+
+**Confusion Matrices (Baseline):**
+
+![Confusion Matrices](outputs/syscallsbinders/confusion_matrices_baseline.png)
+
+**Feature Importance (Baseline):**
+
+![Feature Importance](outputs/syscallsbinders/feature_importance_baseline.png)
+
+</details>
+
+---
+
+### Key Findings
+
+1. **XGBoost consistently outperforms** other models across all datasets
+2. **Tree-based models (RF, XGBoost)** achieve >94% accuracy on all tasks
+3. **SVM performance varies** significantly depending on kernel choice (Linear vs RBF)
+4. **DDoS binary classification** achieves near-perfect accuracy (99.99%)
+5. **Network traffic classification** (Darknet) performs extremely well (~98.5%)
 
 ### Adding New Datasets
 
